@@ -111,7 +111,7 @@ class WebAdapter:
         log.error(f"対応するElement.typeが見つかりませんでした...({element_hint})")
         return None
 
-    def click_this(self, element_hint: ElementHint) -> None:
+    def click_this(self, element_hint: ElementHint) -> bool:
         """エレメントをクリックする
 
         Args:
@@ -121,11 +121,12 @@ class WebAdapter:
         element = self.find_element(element_hint)
         if element is None:
             log.error(f"Elementをクリックできませんでした...({element_hint})")
-            return
+            return False
         element.click()
         log.debug(f"Elementをクリックしました！({element_hint})")
+        return True
 
-    def input_this(self, element_hint: ElementHint, value: str) -> None:
+    def input_this(self, element_hint: ElementHint, value: str) -> bool:
         """エレメントに入力する
         Args:
             element_hint (ElementHint): 入力先のElementHint
@@ -135,13 +136,14 @@ class WebAdapter:
         element = self.find_element(element_hint)
         if element is None:
             log.error(f"Elementに「{value}」を入力できませんでした...({element_hint})")
-            return
+            return False
         # 既に何か入力されているかもしれないので一度clear
         element.clear()
         element.send_keys(value)
         log.debug(f"Elementに「{value}」を入力しました！({element_hint})")
+        return True
 
-    def select_this(self, element_hint: ElementHint, value: str) -> None:
+    def select_this(self, element_hint: ElementHint, value: str) -> bool:
         """Selectタグの要素を選択する
         Args:
             element_hint (ElementHint): 選択する先のElementHint
@@ -151,10 +153,11 @@ class WebAdapter:
         element = self.find_element(element_hint)
         if element is None:
             log.debug(f"Selectから「{value}」を選択できませんでした...({element_hint})")
-            return
+            return False
         select = Select(element)
         select.select_by_visible_text(value)
         log.debug(f"Selectから「{value}」を選択しました！...({element_hint})")
+        return True
 
     def get_html(self) -> HTML:
         """ブラウザから現在表示されているページソースを取得し、HTMLクラスに変換する
