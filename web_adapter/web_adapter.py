@@ -43,7 +43,7 @@ class WebAdapter:
         if is_headless:
             self.options.add_argument("--headless")
         if user_profile:
-            self.options.add_argument('--user-data-dir=UserProfile')
+            self.options.add_argument(f"--user-data-dir={user_profile}")
         self.__load_browser()
 
     def __del__(self) -> None:
