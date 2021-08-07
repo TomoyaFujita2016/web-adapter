@@ -5,11 +5,16 @@ from urllib.parse import urljoin
 
 
 class URL:
-    def __init__(self, absolute_url: str):
+    def __init__(self, absolute_url: str, **kwargs):
         assert absolute_url is not None, "Noneが指定されています。絶対パスを指定してください。"
         assert self.__is_absolute_url(
             absolute_url
         ), "{}は絶対パスではありません。絶対パスを指定してください。".format(absolute_url)
+
+        try:
+            absolute_url = absolute_url.format(**kwargs)
+        except KeyError:
+            raise Exception("f-stringに渡す値がが多いです。")
 
         self.__absolute_url = absolute_url
 
