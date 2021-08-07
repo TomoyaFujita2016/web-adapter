@@ -31,7 +31,7 @@ class WebAdapter:
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
     )
 
-    def __init__(self, is_headless: bool = True, user_profile=None):
+    def __init__(self, is_headless: bool = True, user_data_dir=None):
         self.options = Options()
         self.options.add_argument("--disable-gpu")
         self.options.add_argument("--window-size=1000,1600")
@@ -39,11 +39,12 @@ class WebAdapter:
         self.options.add_argument("--no-sandbox")
         self.options.add_argument(f"--user-agent={WebAdapter.USER_AGENT}")
         self.options.add_argument("--verbose")
-        
+
         if is_headless:
             self.options.add_argument("--headless")
-        if user_profile:
-            self.options.add_argument(f"--user-data-dir={user_profile}")
+        if user_data_dir:
+            self.options.add_argument(f"--user-data-dir={user_data_dir}")
+
         self.__load_browser()
 
     def __del__(self) -> None:
@@ -59,7 +60,7 @@ class WebAdapter:
             ChromeDriverManager().install(), options=self.options
         )
 
-    def __wait_for_element(self, element_hint: ElementHint, latency: int = 5) -> bool:
+    def wait_for_element(self, element_hint: ElementHint, latency: int = 5) -> bool:
         """エレメントが表示されるまで待つ
 
         Args:
@@ -100,7 +101,7 @@ class WebAdapter:
             見つかればWebElement, 見つからなければNone
         """
         log.debug(f"Elementを見つけています。({element_hint})")
-        if not self.__wait_for_element(element_hint):
+        if not self.wait_for_element(element_hint):
             # エレメントが表示されなければreturn
             return None
 
