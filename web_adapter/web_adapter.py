@@ -31,7 +31,7 @@ class WebAdapter:
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
     )
 
-    def __init__(self, is_headless: bool = True):
+    def __init__(self, is_headless: bool = True, user_profile=None):
         self.options = Options()
         self.options.add_argument("--disable-gpu")
         self.options.add_argument("--window-size=1000,1600")
@@ -39,8 +39,11 @@ class WebAdapter:
         self.options.add_argument("--no-sandbox")
         self.options.add_argument(f"--user-agent={WebAdapter.USER_AGENT}")
         self.options.add_argument("--verbose")
+        
         if is_headless:
             self.options.add_argument("--headless")
+        if user_profile:
+            self.options.add_argument('--user-data-dir=UserProfile')
         self.__load_browser()
 
     def __del__(self) -> None:
