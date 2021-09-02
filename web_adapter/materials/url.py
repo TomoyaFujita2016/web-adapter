@@ -21,8 +21,6 @@ class URL:
         return self.__absolute_url
 
     def fvalue(self, **kwargs) -> str:
-        print(self.__absolute_url)
-        print(kwargs)
         try:
             absolute_url = self.__absolute_url.format(**kwargs)
         except KeyError:
