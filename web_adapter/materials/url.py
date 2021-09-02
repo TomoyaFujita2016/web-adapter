@@ -10,12 +10,7 @@ class URL:
         assert self.__is_absolute_url(
             absolute_url
         ), "{}は絶対パスではありません。絶対パスを指定してください。".format(absolute_url)
-
-        try:
-            absolute_url = absolute_url.format(**kwargs)
-        except KeyError:
-            raise Exception("f-stringに渡す値がが多いです。")
-
+        self.kwargs = kwargs
         self.__absolute_url = absolute_url
 
     @staticmethod
@@ -25,6 +20,14 @@ class URL:
     @property
     def value(self) -> str:
         return self.__absolute_url
-
+    
+    @property
+    def fvalue(self) -> str:
+        try:
+            absolute_url = self.__absolute_url.format(**self.kwargs)
+        except KeyError:
+            raise Exception("f-stringに渡す値がが多いです。")
+        return absolute_url
+    
     def __str__(self) -> str:
         return f"url: {self.__absolute_url}"
