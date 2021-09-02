@@ -19,14 +19,15 @@ class URL:
     @property
     def value(self) -> str:
         return self.__absolute_url
-    
-    @property
+
     def fvalue(self, **kwargs) -> str:
+        print(self.__absolute_url)
+        print(kwargs)
         try:
             absolute_url = self.__absolute_url.format(**kwargs)
         except KeyError:
             raise Exception("f-stringに渡す値がが多いです。")
         return absolute_url
-    
+
     def __str__(self) -> str:
         return f"url: {self.__absolute_url}"
