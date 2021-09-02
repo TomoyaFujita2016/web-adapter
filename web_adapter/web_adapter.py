@@ -1,8 +1,10 @@
-from typing import Union
+from typing import List, Union
 
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import (ElementNotInteractableException,
+                                        TimeoutException)
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
@@ -11,10 +13,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from .logger import log
-from .materials.element_hint import ElementHint
 from .materials.html import HTML
 from .materials.type import Type
 from .materials.url import URL
+from .materials.element_hint import ElementHint
 
 
 class WebAdapter:
@@ -25,11 +27,12 @@ class WebAdapter:
         is_headless (bool): Chromeブラウザをヘッドレスモードで起動するかどうか
 
     """
-
     USER_AGENT = (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
     )
+    TIMEOUT = 5
+    RETRIES = 3
 
     def __init__(self, is_headless: bool = True, user_data_dir=None):
         self.options = Options()
@@ -39,6 +42,7 @@ class WebAdapter:
         self.options.add_argument("--no-sandbox")
         self.options.add_argument(f"--user-agent={WebAdapter.USER_AGENT}")
         self.options.add_argument("--verbose")
+        self.options.page_load_strategy = "eager"
 
         if is_headless:
             self.options.add_argument("--headless")
@@ -55,10 +59,12 @@ class WebAdapter:
             pass
 
     def __load_browser(self) -> None:
-        """ドライバの作成とChromeの起動"""
+        """ドライバの作成とChromeの起動, Actionの作成"""
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install(), options=self.options
         )
+        self.driver.set_page_load_timeout(WebAdapter.TIMEOUT)
+        self.actions = ActionChains(self.driver)
 
     def wait_for_element(self, element_hint: ElementHint, latency: int = 5) -> bool:
         """エレメントが表示されるまで待つ
@@ -73,6 +79,7 @@ class WebAdapter:
         log.debug(f"Elementの表示を待っています。({element_hint})")
         try:
             WebDriverWait(self.driver, latency).until(
+                # EC.element_to_be_clickable(
                 EC.presence_of_element_located(
                     (element_hint.type.value, element_hint.path)
                 )
@@ -89,7 +96,13 @@ class WebAdapter:
             url (URL): URL
         """
         log.debug(f"Pageを読み込みます。{url}")
-        self.driver.get(url.value)
+        for _ in range(WebAdapter.RETRIES):
+            try:
+                self.driver.get(url.value)
+                break
+            except TimeoutException:
+                print("Timeout, Retrying... {i}/{WebAdapter.RETRIES}")
+                continue
 
     def find_element(self, element_hint: ElementHint) -> Union[WebElement, None]:
         """エレメントを見つける
@@ -110,6 +123,26 @@ class WebAdapter:
 
         log.error(f"対応するElement.typeが見つかりませんでした...({element_hint})")
         return None
+
+    def find_elements(self, element_hint: ElementHint) -> List[Union[WebElement, None]]:
+        """エレメントを見つける
+
+        Args:
+        element_hint (ElementHint): 見つけるElementHint
+
+        Returns:
+            見つかればWebElement, 見つからなければNone
+        """
+        log.debug(f"Elementを見つけています。({element_hint})")
+        if not self.wait_for_element(element_hint):
+            # エレメントが表示されなければreturn
+            return []
+
+        if element_hint.type == Type.CSS_SELECTOR:
+            return self.driver.find_elements_by_css_selector(element_hint.path)
+
+        log.error(f"対応するElement.typeが見つかりませんでした...({element_hint})")
+        return []
 
     def click_this(self, element_hint: ElementHint) -> bool:
         """エレメントをクリックする
@@ -158,6 +191,36 @@ class WebAdapter:
         select.select_by_visible_text(value)
         log.debug(f"Selectから「{value}」を選択しました！...({element_hint})")
         return True
+
+    def move_mouse_to_this(
+        self, element_hint: Union[ElementHint, None] = None, element=None
+    ) -> bool:
+        """エレメントへマウスカーソルを移動
+
+        Args:
+        element_hint (ElementHint): 見つけるElementHint
+
+        Returns:
+            成功すればTrue, 失敗すればFalse
+        """
+        if all([element_hint, element]):
+            raise Exception("element_hintとelementの両方を指定することはできません")
+
+        log.debug("マウスカーソルを移動します")
+        if element_hint:
+            _element = self.find_element(element_hint)
+            if _element is None:
+                log.debug(f"移動失敗...({element_hint})")
+                return False
+            self.actions.move_to_element(_element).perform()
+            return True
+        if element:
+            try:
+                self.actions.move_to_element(element).perform()
+            except ElementNotInteractableException:
+                log.debug(f"移動失敗...({element})")
+                return False
+        log.debug("マウスカーソルを移動しました！")
 
     def get_html(self) -> HTML:
         """ブラウザから現在表示されているページソースを取得し、HTMLクラスに変換する
