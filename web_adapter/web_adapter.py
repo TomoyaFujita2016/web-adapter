@@ -1,8 +1,7 @@
 from typing import List, Union
 
 from selenium import webdriver
-from selenium.common.exceptions import (ElementNotInteractableException,
-                                        TimeoutException)
+from selenium.common.exceptions import ElementNotInteractableException, TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -13,10 +12,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
 from .logger import log
+from .materials.element_hint import ElementHint
 from .materials.html import HTML
 from .materials.type import Type
 from .materials.url import URL
-from .materials.element_hint import ElementHint
 
 
 class WebAdapter:
@@ -27,6 +26,7 @@ class WebAdapter:
         is_headless (bool): Chromeブラウザをヘッドレスモードで起動するかどうか
 
     """
+
     USER_AGENT = (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
@@ -104,7 +104,9 @@ class WebAdapter:
                 print("Timeout, Retrying... {i}/{WebAdapter.RETRIES}")
                 continue
 
-    def find_element(self, element_hint: ElementHint) -> Union[WebElement, None]:
+    def find_element(
+        self, element_hint: ElementHint, latency: int = 5
+    ) -> Union[WebElement, None]:
         """エレメントを見つける
 
         Args:
@@ -114,7 +116,7 @@ class WebAdapter:
             見つかればWebElement, 見つからなければNone
         """
         log.debug(f"Elementを見つけています。({element_hint})")
-        if not self.wait_for_element(element_hint):
+        if not self.wait_for_element(element_hint, latency=latency):
             # エレメントが表示されなければreturn
             return None
 
