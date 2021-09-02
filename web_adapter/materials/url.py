@@ -20,12 +20,12 @@ class URL:
     def value(self) -> str:
         return self.__absolute_url
 
-    def fvalue(self, **kwargs) -> str:
+    def fnew(self, **kwargs) -> str:
         try:
             absolute_url = self.__absolute_url.format(**kwargs)
         except KeyError:
             raise Exception("f-stringに渡す値がが多いです。")
-        return absolute_url
+        return URL(absolute_url)
 
     def __str__(self) -> str:
         return f"url: {self.__absolute_url}"
