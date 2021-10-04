@@ -66,19 +66,27 @@ class WebAdapter:
         self.driver.set_page_load_timeout(WebAdapter.TIMEOUT)
         self.actions = ActionChains(self.driver)
 
-    def wait_for_element(self, element_hint: ElementHint, latency: int = 5) -> bool:
+    def wait_for_element(
+        self,
+        element_hint: ElementHint,
+        root_element: Union[WebElement, None] = None,
+        latency: int = 5,
+    ) -> bool:
         """エレメントが表示されるまで待つ
 
         Args:
             element_hint (ElementHint): 表示を待つElementHint
+            root_element (WebElement): 親エレメント
             latency (int): 待機時間
 
         Returns:
             もし表示されれればTrue, 表示されなければFalse
         """
+        if root_element is None:
+            root_element = self.driver
         log.debug(f"Elementの表示を待っています。({element_hint})")
         try:
-            WebDriverWait(self.driver, latency).until(
+            WebDriverWait(root_element, latency).until(
                 # EC.element_to_be_clickable(
                 EC.presence_of_element_located(
                     (element_hint.type.value, element_hint.path)
@@ -105,23 +113,31 @@ class WebAdapter:
                 continue
 
     def find_element(
-        self, element_hint: ElementHint, latency: int = 5
+        self,
+        element_hint: ElementHint,
+        root_element: Union[WebElement, None] = None,
+        latency: int = 5,
     ) -> Union[WebElement, None]:
         """エレメントを見つける
 
         Args:
         element_hint (ElementHint): 見つけるElementHint
+        root_element (WebElement): 親エレメント
 
         Returns:
             見つかればWebElement, 見つからなければNone
         """
+        if root_element is None:
+            root_element = self.driver
         log.debug(f"Elementを見つけています。({element_hint})")
-        if not self.wait_for_element(element_hint, latency=latency):
+        if not self.wait_for_element(
+            element_hint, root_element=root_element, latency=latency
+        ):
             # エレメントが表示されなければreturn
             return None
 
         if element_hint.type == Type.CSS_SELECTOR:
-            return self.driver.find_element_by_css_selector(element_hint.path)
+            return root_element.find_element_by_css_selector(element_hint.path)
 
         log.error(f"対応するElement.typeが見つかりませんでした...({element_hint})")
         return None
@@ -146,14 +162,16 @@ class WebAdapter:
         log.error(f"対応するElement.typeが見つかりませんでした...({element_hint})")
         return []
 
-    def click_this(self, element_hint: ElementHint) -> bool:
+    def click_this(
+        self, element_hint: ElementHint, root_element: Union[WebElement, None] = None
+    ) -> bool:
         """エレメントをクリックする
-
         Args:
             element_hint (ElementHint): クリックするElementHint
+            root_element (WebElement): 親エレメント
         """
         log.debug(f"Elementをクリックします。({element_hint})")
-        element = self.find_element(element_hint)
+        element = self.find_element(element_hint, root_element=root_element)
         if element is None:
             log.error(f"Elementをクリックできませんでした...({element_hint})")
             return False
@@ -161,14 +179,20 @@ class WebAdapter:
         log.debug(f"Elementをクリックしました！({element_hint})")
         return True
 
-    def input_this(self, element_hint: ElementHint, value: str) -> bool:
+    def input_this(
+        self,
+        element_hint: ElementHint,
+        value: str,
+        root_element: Union[WebElement, None] = None,
+    ) -> bool:
         """エレメントに入力する
         Args:
             element_hint (ElementHint): 入力先のElementHint
+            root_element (WebElement): 親エレメント
             value (str): 入力する文字列
         """
         log.debug(f"Elementに「{value}」を入力します。({element_hint})")
-        element = self.find_element(element_hint)
+        element = self.find_element(element_hint, root_element=root_element)
         if element is None:
             log.error(f"Elementに「{value}」を入力できませんでした...({element_hint})")
             return False
@@ -231,3 +255,16 @@ class WebAdapter:
             html (HTML): HTML
         """
         return HTML(self.driver.page_source)
+
+    def find_shadow_root(
+        self, root_element: WebElement, retry: int = 5, latency: float = 0.1
+    ) -> Union[WebElement, None]:
+        for i in range(retry):
+            try:
+                shadow_root = self.driver.execute_script(
+                    "return arguments[0].shadowRoot", root_element
+                )
+                return shadow_root
+            except Exception as e:
+                log.warn(str(e))
+        return None
