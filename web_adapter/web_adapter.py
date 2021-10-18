@@ -109,7 +109,7 @@ class WebAdapter:
                 self.driver.get(url.value)
                 break
             except TimeoutException:
-                print("Timeout, Retrying... {i}/{WebAdapter.RETRIES}")
+                print(f"Timeout, Retrying... {i}/{WebAdapter.RETRIES}")
                 continue
 
     def find_element(
