@@ -163,7 +163,7 @@ class WebAdapter:
         return []
 
     def click_this(
-        self, element_hint: ElementHint, root_element: Union[WebElement, None] = None
+        self, element_hint: ElementHint, root_element: Union[WebElement, None] = None, latency=5
     ) -> bool:
         """エレメントをクリックする
         Args:
@@ -171,7 +171,7 @@ class WebAdapter:
             root_element (WebElement): 親エレメント
         """
         log.debug(f"Elementをクリックします。({element_hint})")
-        element = self.find_element(element_hint, root_element=root_element)
+        element = self.find_element(element_hint, root_element=root_element, latency=latency)
         if element is None:
             log.error(f"Elementをクリックできませんでした...({element_hint})")
             return False
