@@ -9,7 +9,7 @@ class ElementHint:
         type (Type): ``CSS_SELECTOR`` など
     """
 
-    def __init__(self, path: str, type: Type):
+    def __init__(self, path: str, type: Type=Type.CSS_SELECTOR):
         self.__path = path
         self.__type = type
 
