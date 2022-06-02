@@ -104,7 +104,7 @@ class WebAdapter:
             url (URL): URL
         """
         log.debug(f"Pageを読み込みます。{url}")
-        for _ in range(WebAdapter.RETRIES):
+        for i in range(WebAdapter.RETRIES):
             try:
                 self.driver.get(url.value)
                 break
@@ -163,7 +163,10 @@ class WebAdapter:
         return []
 
     def click_this(
-        self, element_hint: ElementHint, root_element: Union[WebElement, None] = None, latency=5
+        self,
+        element_hint: ElementHint,
+        root_element: Union[WebElement, None] = None,
+        latency=5,
     ) -> bool:
         """エレメントをクリックする
         Args:
@@ -171,7 +174,9 @@ class WebAdapter:
             root_element (WebElement): 親エレメント
         """
         log.debug(f"Elementをクリックします。({element_hint})")
-        element = self.find_element(element_hint, root_element=root_element, latency=latency)
+        element = self.find_element(
+            element_hint, root_element=root_element, latency=latency
+        )
         if element is None:
             log.error(f"Elementをクリックできませんでした...({element_hint})")
             return False
