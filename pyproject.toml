@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "web-adapter"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 authors = ["TomoyaFujita2016 <fujita.t.2016c@gmail.com>"]
 

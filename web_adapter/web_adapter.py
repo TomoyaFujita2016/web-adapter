@@ -32,9 +32,21 @@ class WebAdapter:
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
     )
     TIMEOUT = 5
-    RETRIES = 3
+    RETRIES = 4
 
-    def __init__(self, is_headless: bool = True, user_data_dir=None):
+    def __init__(
+        self, is_headless: bool = True, user_data_dir=None, timeout=None, retries=None
+    ):
+        if timeout is None:
+            self.timeout = self.TIMEOUT
+        else:
+            self.timeout = timeout
+
+        if retries is None:
+            self.retries = self.RETRIES
+        else:
+            self.retries = retries
+
         self.options = Options()
         self.options.add_argument("--disable-gpu")
         self.options.add_argument("--window-size=1000,1600")
@@ -63,7 +75,7 @@ class WebAdapter:
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install(), options=self.options
         )
-        self.driver.set_page_load_timeout(WebAdapter.TIMEOUT)
+        self.driver.set_page_load_timeout(self.timeout)
         self.actions = ActionChains(self.driver)
 
     def wait_for_element(
@@ -104,12 +116,12 @@ class WebAdapter:
             url (URL): URL
         """
         log.debug(f"Pageを読み込みます。{url}")
-        for i in range(WebAdapter.RETRIES):
+        for i in range(self.retries):
             try:
                 self.driver.get(url.value)
                 break
             except TimeoutException:
-                print(f"Timeout, Retrying... {i}/{WebAdapter.RETRIES}")
+                log.debug(f"Timeout, Retrying... {i}/{self.retries}")
                 continue
 
     def find_element(
