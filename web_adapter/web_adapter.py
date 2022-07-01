@@ -263,6 +263,7 @@ class WebAdapter:
             except ElementNotInteractableException:
                 log.debug(f"移動失敗...({element})")
                 return False
+        return True
         log.debug("マウスカーソルを移動しました！")
 
     def get_html(self) -> HTML:
