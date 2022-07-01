@@ -154,7 +154,12 @@ class WebAdapter:
         log.error(f"対応するElement.typeが見つかりませんでした...({element_hint})")
         return None
 
-    def find_elements(self, element_hint: ElementHint) -> List[Union[WebElement, None]]:
+    def find_elements(
+        self,
+        element_hint: ElementHint,
+        root_element: Union[WebElement, None] = None,
+        latency: int = 5,
+    ) -> List[Union[WebElement, None]]:
         """エレメントを見つける
 
         Args:
@@ -163,13 +168,17 @@ class WebAdapter:
         Returns:
             見つかればWebElement, 見つからなければNone
         """
+        if root_element is None:
+            root_element = self.driver
         log.debug(f"Elementを見つけています。({element_hint})")
-        if not self.wait_for_element(element_hint):
+        if not self.wait_for_element(
+            element_hint, root_element=root_element, latency=latency
+        ):
             # エレメントが表示されなければreturn
             return []
 
         if element_hint.type == Type.CSS_SELECTOR:
-            return self.driver.find_elements_by_css_selector(element_hint.path)
+            return root_element.find_elements_by_css_selector(element_hint.path)
 
         log.error(f"対応するElement.typeが見つかりませんでした...({element_hint})")
         return []
