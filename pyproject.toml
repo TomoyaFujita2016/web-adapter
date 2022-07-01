@@ -6,8 +6,8 @@ authors = ["TomoyaFujita2016 <fujita.t.2016c@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-selenium = "^3.141.0"
-webdriver-manager = "^3.4.2"
+webdriver-manager = "^3.7.1"
+selenium = "^4.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
