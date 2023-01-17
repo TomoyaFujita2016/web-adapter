@@ -49,7 +49,7 @@ class WebAdapter:
 
         self.options = Options()
         self.options.add_argument("--disable-gpu")
-        self.options.add_argument("--window-size=1000,1600")
+        self.options.add_argument("--window-size=1920,1080")
         self.options.add_argument("--disable-extensions")
         self.options.add_argument("--no-sandbox")
         self.options.add_argument(f"--user-agent={WebAdapter.USER_AGENT}")
